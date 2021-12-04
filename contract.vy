@@ -1,6 +1,5 @@
 # @version ^0.2.0
 
-# SmartContract for CrowdFounding developed by Emanuelle Moço
 
 # Struct que agrupa os dados de uma doacao
 struct Donation:

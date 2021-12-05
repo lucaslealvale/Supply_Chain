@@ -1,38 +1,11 @@
 # Supply_Chain
-projeto de Block Chain, implementação de uma supply chain
-
-
-
-A) Doações de Bens: Onde o nosso produto ia facilitar no registro dos objetos que estariam sendo transitados de um remetente a um beneficiario. Foco em grandes doações entre instituições (ex: Grande Hospital Privado doa macas para Hospitais Públicos pequenos).
-
-struct pessoa
-
-
-
-contrutor
-
-doacao
-destinatario
-
-
-
-
-
-Doacao - id 
-
-beneficiários
-
-cadeia
-
-Quem é a chave? focado no produto ou nos agentes
-
-Em cada lugar ganha uma tag diferente
-x -> y
-y -> z
-
-
-carteira dona do contrato
--> ongs filiadas que dao baixa na doacao
--> na criacao do contrato passar as ongs que podem retirar aquela doacao
--> todo mundo pode doar e acrescentar naquele smartcontract, porem so as ongs podem retirar aquele valor
--> 
+Projeto de Block Chain, implementação de uma supply chain. Feito em Vyper e baseado nas aulas de Ativos digitais por Raul Ikeda
+Neste contrato o dono é capaz de adicionar doações de sangue no banco e realizar os testes laboratoriais para verificar se as doações estão aptas para transfusões.  
+Uma vez que os teste laboratoriais validaram uma doação, surgem então três hemo componentes no banco, que são:
+  
+Plaquetas  
+Hemacias  
+Plasma  
+  
+O administrador da blockchain, tem poder de realizar a retirada de cada um desses componentes desde que eles estejam dentro do prazo de validade.  
+Para utilizar/testar este contrato é necessário compila-lo pelo site https://remix.ethereum.org/ e executa-lo pelo mesmo site.  

@@ -9,7 +9,6 @@ struct Donation:
     available: bool # Status da doacao
     
 supplyCounter: uint256
-nextDonationAnalisys : uint256
 
 #Iniciando struct de plaquetas
 struct Plaqueta:
@@ -76,11 +75,10 @@ def __init__():
     self.plasmaCounter = 0
 
     self.supplyCounter = 0
-    self.nextDonationAnalisys = 1
     
-    self.timePlaqueta = 10 #86400 * 5 # (5 dias)  # editar para implementacao real
-    self.timeHemacia =  10 #86400 * 365 # (1 ano) # editar para implementacao real
-    self.timePlasma = 10   #86400 * 365 # (1 ano) # editar para implementacao real
+    self.timePlaqueta = 10 #FIXME: 86400 * 5 # (5 dias)  # editar para implementacao real
+    self.timeHemacia =  10 #FIXME: 86400 * 365 # (1 ano) # editar para implementacao real
+    self.timePlasma = 10   #FIXME: 86400 * 365 # (1 ano) # editar para implementacao real
 
     
 @external # Habilita para interação externa (função chamável)
@@ -109,49 +107,46 @@ def labResults():
     # Testa se é o dono do contrato
     assert msg.sender == self.owner, "Only the owner can add a lab result"
 
-    assert msg.value == 0 or msg.value == 1, "Invalid value"
+    assert self.donations[msg.value].id_ == msg.value, "Invalid donation id"
     # funcionario pega o resultado e atualiza o status da doação
     # se o resultado for positivo, adiciona no struct
     
-    assert self.nextDonationAnalisys <= self.supplyCounter, "Donation not found" 
+    assert self.donations[msg.value].available == False, "Result already added"
+
+    auxId_ : uint256 = self.donations[msg.value].id_
+
    # insere o resulto do exame laboratorial
-    if(msg.value == 1):
-        self.donations[self.nextDonationAnalisys] =  Donation({
-            date : block.timestamp,
-            id_ : self.nextDonationAnalisys,
-            available: True,
-            })
-        # Cria uma nova plaqueta, hemacia e plasma:
-        self.plaquetaCounter += 1
-        self.plaquetas[self.plaquetaCounter] =  Plaqueta({
-            id_ : self.nextDonationAnalisys,
-            idP : self.plaquetaCounter,
-            date: self.donations[self.nextDonationAnalisys].date,
-            available: True,
-            })
-        self.hemaciaCounter += 1
-        self.hemacias[self.hemaciaCounter] =  Hemacia({
-            id_ : self.nextDonationAnalisys,
-            idH : self.hemaciaCounter,
-            date: self.donations[self.nextDonationAnalisys].date,
-            available: True,
-            })
-        self.plasmaCounter += 1
-        self.plasmas[self.plasmaCounter] =  Plasma({
-            id_ : self.nextDonationAnalisys,
-            idP : self.plasmaCounter,
-            date: self.donations[self.nextDonationAnalisys].date,
-            available: True,
-            })
+    self.donations[msg.value] =  Donation({
+        date : block.timestamp,
+        id_ : auxId_,
+        available: True,
+        })
+    # Cria uma nova plaqueta, hemacia e plasma:
+    self.plaquetaCounter += 1
+    self.plaquetas[self.plaquetaCounter] =  Plaqueta({
+        id_ : auxId_,
+        idP : self.plaquetaCounter,
+        date: self.donations[msg.value].date,
+        available: True,
+        })
+    self.hemaciaCounter += 1
+    self.hemacias[self.hemaciaCounter] =  Hemacia({
+        id_ : auxId_,
+        idH : self.hemaciaCounter,
+        date: self.donations[msg.value].date,
+        available: True,
+        })
+    self.plasmaCounter += 1
+    self.plasmas[self.plasmaCounter] =  Plasma({
+        id_ : auxId_,
+        idP : self.plasmaCounter,
+        date: self.donations[msg.value].date,
+        available: True,
+        })
 
-    elif(msg.value ==0):    
-        self.donations[self.supplyCounter] =  Donation({
-            date : block.timestamp,
-            id_ : self.supplyCounter,
-            available: False,
-            })
 
-    self.nextDonationAnalisys += 1
+
+   
 
 # Funcao para a retirada da plaqueta
 @external

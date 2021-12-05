@@ -1,8 +1,8 @@
 # Supply_Chain
 Projeto de Block Chain para implementação de uma supply chain para doação de sangue.  
 Feito em Vyper e baseado nas aulas de Ativos Digitais por Raul Ikeda.  
-Neste contrato o dono é capaz de adicionar doações de sangue no banco e realizar os atualizar o resultado dos testes laboratoriais para verificar se as doações estão aptas para transfusões.  
-Uma vez que os teste laboratoriais validaram uma doação, surgem então três hemo componentes no banco, que são:
+Neste contrato o dono é capaz de adicionar doações de sangue no banco e realizar os atualizar o resultado, por meio do seu id, dos testes laboratoriais que estão aptos a serem doados.
+Uma vez que os teste laboratoriais validaram uma doação, surgem então três hemo-componentes no banco, que são:
   
 Plaquetas  
 Hemacias  

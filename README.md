@@ -1,5 +1,5 @@
 # Supply_Chain
-Projeto de Block Chain, implementação de uma supply chain. Feito em Vyper e baseado nas aulas de Ativos digitais por Raul Ikeda
+Projeto de Block Chain, implementação de uma supply chain. Feito em Vyper e baseado nas aulas de Ativos digitais por Raul Ikeda.  
 Neste contrato o dono é capaz de adicionar doações de sangue no banco e realizar os testes laboratoriais para verificar se as doações estão aptas para transfusões.  
 Uma vez que os teste laboratoriais validaram uma doação, surgem então três hemo componentes no banco, que são:
   

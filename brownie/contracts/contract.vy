@@ -1,42 +1,94 @@
 # @version ^0.2.0
 
-
+# Código feito com base nas aulas de ativos digitais por Raul Ikeda e com auxilio da
+# documentação do vyper disponivel em: https://remix-ide.readthedocs.io/en/latest/index.html
 # Struct que agrupa os dados de uma doacao
 struct Donation:
     date: uint256 # Data da doacao
     id_: uint256 # ID da doacao
     available: bool # Status da doacao
     
+supplyCounter: uint256
+nextDonationAnalisys : uint256
 
+#Iniciando struct de plaquetas
 struct Plaqueta:
     id_: uint256 # ID da doacao
     idP: uint256 # ID da Plaqueta
     date: uint256 # Data da doacao
     available: bool # Status da doacao
     
+#Iniciando variaveis de plaquetas
 nextAvailablePlaqueta : uint256
 plaquetaCounter: uint256
-supplyCounter: uint256
-nextDonationAnalisys : uint256
+timePlaqueta : uint256
+
+#Iniciando struct de Hemacias
+struct Hemacia:
+    id_: uint256 # ID da doacao
+    idH: uint256 # ID da Plaqueta
+    date: uint256 # Data da doacao
+    available: bool # Status da doacao
+
+#Iniciando variaveis de hemacias
+nextAvailableHemacia : uint256
+hemaciaCounter: uint256
+timeHemacia: uint256
+
+#Iniciando struct de PLasma
+struct Plasma:
+    id_: uint256 # ID da doacao
+    idP: uint256 # ID da Plaqueta
+    date: uint256 # Data da doacao
+    available: bool # Status da doacao
+
+#Iniciando variaveis de plasma
+nextAvailablePlasma : uint256
+plasmaCounter: uint256
+timePlasma: uint256
+
 
 # Dicionário que indica se o usuário fez uma doacao
 donations: public(HashMap[uint256, Donation])
 
+#Dicionarios de componentes do sangue
 plaquetas: public(HashMap[uint256, Plaqueta])
+hemacias: public(HashMap[uint256, Hemacia])
+plasmas: public(HashMap[uint256, Plasma])
 
+
+# Endereço do dono do contrato
+owner: address
 
 # Função que roda quando é feito o deploy do contrato
 @external
 def __init__():
     # Guarda o Endereço do dono do contrato na variável
+    self.owner = msg.sender
+    
     self.nextAvailablePlaqueta = 1
     self.plaquetaCounter = 0
+    
+    self.nextAvailableHemacia = 1
+    self.hemaciaCounter = 0
+
+    self.nextAvailablePlasma = 1
+    self.plasmaCounter = 0
+
     self.supplyCounter = 0
     self.nextDonationAnalisys = 1
+    
+    self.timePlaqueta = 10 #86400 * 5 # (5 dias)  # editar para implementacao real
+    self.timeHemacia =  10 #86400 * 365 # (1 ano) # editar para implementacao real
+    self.timePlasma = 10   #86400 * 365 # (1 ano) # editar para implementacao real
 
     
 @external # Habilita para interação externa (função chamável)
 def donateBlood():
+
+    # Testa se é o dono do contrato
+    assert msg.sender == self.owner, "Only the owner can add a donation"
+
     # # Testa se o evento ainda não acabou
     # assert block.timestamp < self.deadLine, "Crowdfunding has finished"
     # assert self.end == False, "Crowdfunding has finished"
@@ -54,6 +106,9 @@ def donateBlood():
 @external # Habilita para interação externa (função chamável)
 @payable
 def labResults():  
+    # Testa se é o dono do contrato
+    assert msg.sender == self.owner, "Only the owner can add a lab result"
+
     assert msg.value == 0 or msg.value == 1, "Invalid value"
     # funcionario pega o resultado e atualiza o status da doação
     # se o resultado for positivo, adiciona no struct
@@ -66,7 +121,7 @@ def labResults():
             id_ : self.nextDonationAnalisys,
             available: True,
             })
-        # Cria uma nova plaqueta:
+        # Cria uma nova plaqueta, hemacia e plasma:
         self.plaquetaCounter += 1
         self.plaquetas[self.plaquetaCounter] =  Plaqueta({
             id_ : self.nextDonationAnalisys,
@@ -74,7 +129,20 @@ def labResults():
             date: self.donations[self.nextDonationAnalisys].date,
             available: True,
             })
-
+        self.hemaciaCounter += 1
+        self.hemacias[self.hemaciaCounter] =  Hemacia({
+            id_ : self.nextDonationAnalisys,
+            idH : self.hemaciaCounter,
+            date: self.donations[self.nextDonationAnalisys].date,
+            available: True,
+            })
+        self.plasmaCounter += 1
+        self.plasmas[self.plasmaCounter] =  Plasma({
+            id_ : self.nextDonationAnalisys,
+            idP : self.plasmaCounter,
+            date: self.donations[self.nextDonationAnalisys].date,
+            available: True,
+            })
 
     elif(msg.value ==0):    
         self.donations[self.supplyCounter] =  Donation({
@@ -88,10 +156,15 @@ def labResults():
 # Funcao para a retirada da plaqueta
 @external
 def getPlaqueta():
+    # Testa se é o dono do contrato
+    assert msg.sender == self.owner, "Only the owner can get donation"
+    
     assert self.nextAvailablePlaqueta <= self.plaquetaCounter, "Plaqueta not found"
 
-    assert block.timestamp < self.plaquetas[self.nextAvailablePlaqueta].date * 10 , "Plaqueta expired"
-    # Se a plaqueta estiver disponivel, consome e torna-se indisponivel
+    if (block.timestamp > self.plaquetas[self.nextAvailablePlaqueta].date + self.timePlaqueta):
+        self.nextAvailablePlaqueta += 1
+        assert False == True, "Plaqueta expired, try again"    # Se a plaqueta estiver disponivel, consome e torna-se indisponivel
+    
     auxId_ : uint256 = self.plaquetas[self.nextAvailablePlaqueta].id_
     auxDate : uint256 = self.plaquetas[self.nextAvailablePlaqueta].date
 
@@ -104,41 +177,52 @@ def getPlaqueta():
 
     self.nextAvailablePlaqueta += 1
 
-# # Função que encerra o evento
-# @external
-# def finish():
-#     # Caso o evento já tenha terminado
-#     assert self.end == False, "Crowdfunding already finished"
+# Funcao para a retirada de Hemacia
+@external
+def getHemacia():
+    # Testa se é o dono do contrato
+    assert msg.sender == self.owner, "Only the owner can get donation"
 
-#     # # Testa se o evento já foi encerrado (passou a data limite)
-#     # assert block.timestamp > self.deadLine, "Crowdfunding still in progress"
+    assert self.nextAvailableHemacia <= self.hemaciaCounter, "Hemacia not found"
 
-#     # Testa se é o dono do contrato
-#     assert msg.sender == self.owner, "Only the owner can finish the event"
-    
-#     # Testa se o evento alcançou o minimo de doacao
-#     assert self.count >= self.priceGoal, "Not reached the goal"
+    if (block.timestamp < self.hemacias[self.nextAvailableHemacia].date + self.timeHemacia):
+        self.nextAvailableHemacia += 1
+        assert False == True , "Hemacia expired, try again"
+        
+    # Se a plaqueta estiver disponivel, consome e torna-se indisponivel
+    auxId_ : uint256 = self.hemacias[self.nextAvailableHemacia].id_
+    auxDate : uint256 = self.hemacias[self.nextAvailableHemacia].date
 
-#     # Sinaliza e saca o dinheiro do contrato
-#     self.end = True
-#     selfdestruct(msg.sender)
+    self.hemacias[self.nextAvailableHemacia] =  Hemacia({
+            id_ : auxId_,
+            idH : self.nextAvailableHemacia,
+            date: auxDate,
+            available: False,
+        })
 
+    self.nextAvailableHemacia += 1
 
-# # Função para pedir refound de uma doacao caso a meta não tenha sido atingida
-# @external
-# def refound():
-#     # Checa se o evento acabou
-#     assert block.timestamp > self.deadLine, "Crowdfunding still in progress"
+# Funcao para a retirada do plasma
+@external
+def getPlasma():
+    # Testa se é o dono do contrato
+    assert msg.sender == self.owner, "Only the owner can get donation"
 
-#     # Testa se o evento acabou sem bater a meta
-#     assert self.count <= self.priceGoal, "We reached the goal"
+    assert self.nextAvailablePlasma <= self.plasmaCounter, "Plasma not found"
 
-#     # Chega se o msg.value é menor ou igual ao valor que a pessoa doou
+    if (block.timestamp > self.plasmas[self.nextAvailablePlasma].date + self.timePlasma):
+        self.nextAvailablePlasma += 1
+        assert False == True, "Plasma expired, try again"
 
-#     # # Checa se o msg.sender fez uma doacao e se ela é valida para retirada
-#     assert self.users[msg.sender].price > 0, "You don't have anything to withdraw"
+    # Se a plasma estiver disponivel, consome e torna-se indisponivel
+    auxId_ : uint256 = self.plasmas[self.nextAvailablePlasma].id_
+    auxDate : uint256 = self.plasmas[self.nextAvailablePlasma].date
 
-#     # Transfere o dinheiro para a pessoa
-#     send(msg.sender, self.users[msg.sender].price)
-#     # self.users[msg.sender].valid = False
-    
+    self.plasmas[self.nextAvailablePlasma] =  Plasma({
+            id_ : auxId_,
+            idP : self.nextAvailablePlasma,
+            date: auxDate,
+            available: False,
+        })
+
+    self.nextAvailablePlasma += 1

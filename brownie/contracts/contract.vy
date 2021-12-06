@@ -46,6 +46,12 @@ nextAvailablePlasma : uint256
 plasmaCounter: uint256
 timePlasma: uint256
 
+#Struct que agrupa os dados alguem apto a fazer mudanças no sistema
+struct Hospital:
+    id_ : address # Endereço do hospital
+
+#Dicionário que armazena os endereços dos hospitais
+hospitais: public(HashMap[address, Hospital])
 
 # Dicionário que indica se o usuário fez uma doacao
 donations: public(HashMap[uint256, Donation])
@@ -58,6 +64,8 @@ plasmas: public(HashMap[uint256, Plasma])
 
 # Endereço do dono do contrato
 owner: address
+
+idResult: uint256
 
 # Função que roda quando é feito o deploy do contrato
 @external
@@ -78,9 +86,9 @@ def __init__():
     
     self.timePlaqueta = 10 #FIXME: 86400 * 5 # (5 dias)  # editar para implementacao real
     self.timeHemacia =  10 #FIXME: 86400 * 365 # (1 ano) # editar para implementacao real
-    self.timePlasma = 10   #FIXME: 86400 * 365 # (1 ano) # editar para implementacao real
+    self.timePlasma = 10  #FIXME: 86400 * 365 # (1 ano) # editar para implementacao real
 
-    
+
 @external # Habilita para interação externa (função chamável)
 def donateBlood():
 
@@ -100,23 +108,24 @@ def donateBlood():
         available: False,
         })
 
+
 # Função para atualizar status da doação de sangue
 @external # Habilita para interação externa (função chamável)
-@payable
-def labResults():  
+def labResults(idResult: uint256):  
     # Testa se é o dono do contrato
     assert msg.sender == self.owner, "Only the owner can add a lab result"
 
-    assert self.donations[msg.value].id_ == msg.value, "Invalid donation id"
+    assert self.donations[idResult].id_ == idResult, "Invalid donation id"
+
     # funcionario pega o resultado e atualiza o status da doação
     # se o resultado for positivo, adiciona no struct
     
-    assert self.donations[msg.value].available == False, "Result already added"
+    assert self.donations[idResult].available == False, "Result already added"
 
-    auxId_ : uint256 = self.donations[msg.value].id_
+    auxId_ : uint256 = self.donations[idResult].id_
 
    # insere o resulto do exame laboratorial
-    self.donations[msg.value] =  Donation({
+    self.donations[idResult] =  Donation({
         date : block.timestamp,
         id_ : auxId_,
         available: True,
@@ -126,26 +135,29 @@ def labResults():
     self.plaquetas[self.plaquetaCounter] =  Plaqueta({
         id_ : auxId_,
         idP : self.plaquetaCounter,
-        date: self.donations[msg.value].date,
+        date: self.donations[idResult].date,
         available: True,
         })
     self.hemaciaCounter += 1
     self.hemacias[self.hemaciaCounter] =  Hemacia({
         id_ : auxId_,
         idH : self.hemaciaCounter,
-        date: self.donations[msg.value].date,
+        date: self.donations[idResult].date,
         available: True,
         })
     self.plasmaCounter += 1
     self.plasmas[self.plasmaCounter] =  Plasma({
         id_ : auxId_,
         idP : self.plasmaCounter,
-        date: self.donations[msg.value].date,
+        date: self.donations[idResult].date,
         available: True,
         })
 
 
 
+# @external # Habilita para interação externa (função chamável)
+# def addHospital:
+#     assert msg.sender == self.owner, "Only the owner can add a hospital"
    
 
 # Funcao para a retirada da plaqueta
@@ -154,7 +166,7 @@ def getPlaqueta():
     # Testa se é o dono do contrato
     assert msg.sender == self.owner, "Only the owner can get donation"
     
-    assert self.nextAvailablePlaqueta <= self.plaquetaCounter, "Plaqueta not found"
+    # assert self.nextAvailablePlaqueta <= self.plaquetaCounter, "Plaqueta not found"
 
     if (block.timestamp > self.plaquetas[self.nextAvailablePlaqueta].date + self.timePlaqueta):
         self.nextAvailablePlaqueta += 1
@@ -178,9 +190,9 @@ def getHemacia():
     # Testa se é o dono do contrato
     assert msg.sender == self.owner, "Only the owner can get donation"
 
-    assert self.nextAvailableHemacia <= self.hemaciaCounter, "Hemacia not found"
+    # assert self.nextAvailableHemacia < self.hemaciaCounter, "Hemacia not found"
 
-    if (block.timestamp < self.hemacias[self.nextAvailableHemacia].date + self.timeHemacia):
+    if (block.timestamp > self.hemacias[self.nextAvailableHemacia].date + self.timeHemacia):
         self.nextAvailableHemacia += 1
         assert False == True , "Hemacia expired, try again"
         
@@ -203,7 +215,7 @@ def getPlasma():
     # Testa se é o dono do contrato
     assert msg.sender == self.owner, "Only the owner can get donation"
 
-    assert self.nextAvailablePlasma <= self.plasmaCounter, "Plasma not found"
+    # assert self.nextAvailablePlasma < self.plasmaCounter, "Plasma not found"
 
     if (block.timestamp > self.plasmas[self.nextAvailablePlasma].date + self.timePlasma):
         self.nextAvailablePlasma += 1

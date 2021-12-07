@@ -173,7 +173,7 @@ def getPlaqueta():
     # Testa se é o dono do contrato
     assert msg.sender == self.owner or msg.sender == self.hospitais[msg.sender].id_ , "User not allowed to get donation"
     
-    # assert self.nextAvailablePlaqueta <= self.plaquetaCounter, "Plaqueta not found"
+    assert self.nextAvailablePlaqueta <= self.plaquetaCounter, "Plaqueta not found"
 
     if (block.timestamp > self.plaquetas[self.nextAvailablePlaqueta].date + self.timePlaqueta):
         self.nextAvailablePlaqueta += 1
@@ -197,7 +197,7 @@ def getHemacia():
     # Testa se é o dono do contrato
     assert msg.sender == self.owner or msg.sender == self.hospitais[msg.sender].id_ , "User not allowed to get donation"
 
-    # assert self.nextAvailableHemacia < self.hemaciaCounter, "Hemacia not found"
+    assert self.nextAvailableHemacia <= self.hemaciaCounter, "Hemacia not found"
 
     if (block.timestamp > self.hemacias[self.nextAvailableHemacia].date + self.timeHemacia):
         self.nextAvailableHemacia += 1
@@ -222,7 +222,7 @@ def getPlasma():
     # Testa se é o dono do contrato
     assert msg.sender == self.owner or msg.sender == self.hospitais[msg.sender].id_ , "User not allowed to get donation"
 
-    # assert self.nextAvailablePlasma < self.plasmaCounter, "Plasma not found"
+    assert self.nextAvailablePlasma <= self.plasmaCounter, "Plasma not found"
 
     if (block.timestamp > self.plasmas[self.nextAvailablePlasma].date + self.timePlasma):
         self.nextAvailablePlasma += 1

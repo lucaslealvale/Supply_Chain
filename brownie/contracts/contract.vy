@@ -91,9 +91,8 @@ def __init__():
 
 @external # Habilita para interação externa (função chamável)
 def donateBlood():
-
     # Testa se é o dono do contrato
-    assert msg.sender == self.owner, "Only the owner can add a donation"
+    assert msg.sender == self.owner or msg.sender == self.hospitais[msg.sender].id_, "User not allowed to add a donation"
 
     # # Testa se o evento ainda não acabou
     # assert block.timestamp < self.deadLine, "Crowdfunding has finished"
@@ -123,7 +122,6 @@ def labResults(idResult: uint256):
     assert self.donations[idResult].available == False, "Result already added"
 
     auxId_ : uint256 = self.donations[idResult].id_
-
    # insere o resulto do exame laboratorial
     self.donations[idResult] =  Donation({
         date : block.timestamp,
@@ -155,16 +153,25 @@ def labResults(idResult: uint256):
 
 
 
-# @external # Habilita para interação externa (função chamável)
-# def addHospital:
-#     assert msg.sender == self.owner, "Only the owner can add a hospital"
-   
+@external # Habilita para interação externa (função chamável)
+def addHospital(hospital: address):
+    assert msg.sender == self.owner, "Only the owner can add a hospital"
+
+    # assert hospital != ZERO_ADDRESS, "Invalid hospital address" FIXME: # achar um jeito de fazer isso
+
+    # Testa se o hospital já está cadastrado
+    # assert self.hospitais[hospital].id_ == hospital, "Hospital already registered"
+
+    self.hospitais[hospital] = Hospital({
+        id_ : hospital,
+        })
+
 
 # Funcao para a retirada da plaqueta
 @external
 def getPlaqueta():
     # Testa se é o dono do contrato
-    assert msg.sender == self.owner, "Only the owner can get donation"
+    assert msg.sender == self.owner or msg.sender == self.hospitais[msg.sender].id_ , "User not allowed to get donation"
     
     # assert self.nextAvailablePlaqueta <= self.plaquetaCounter, "Plaqueta not found"
 
@@ -188,7 +195,7 @@ def getPlaqueta():
 @external
 def getHemacia():
     # Testa se é o dono do contrato
-    assert msg.sender == self.owner, "Only the owner can get donation"
+    assert msg.sender == self.owner or msg.sender == self.hospitais[msg.sender].id_ , "User not allowed to get donation"
 
     # assert self.nextAvailableHemacia < self.hemaciaCounter, "Hemacia not found"
 
@@ -213,7 +220,7 @@ def getHemacia():
 @external
 def getPlasma():
     # Testa se é o dono do contrato
-    assert msg.sender == self.owner, "Only the owner can get donation"
+    assert msg.sender == self.owner or msg.sender == self.hospitais[msg.sender].id_ , "User not allowed to get donation"
 
     # assert self.nextAvailablePlasma < self.plasmaCounter, "Plasma not found"
 
